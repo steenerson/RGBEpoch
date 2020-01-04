@@ -2,7 +2,6 @@
 #include <FastLED.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
-#include <WiFiClient.h>
 #include <WebServer.h>
 #include <ESPmDNS.h>
 #include <Update.h>
@@ -10,7 +9,7 @@
 // #include <AutoConnect.h>
 
 // autoconnect is a lot more annoying than just setting SSID+pass here, 
-const char* ssid = "ENTER SSID HERE";
+const char* ssid = "ENTER WIFI SSID HERE";
 const char* password = "ENTER PASSWORD HERE";
 
 // sets hostname, used for wifi+mDNS
@@ -210,7 +209,7 @@ void setup(void) {
   timeClient.update();
   delay(500);
 
-  // set current time. this is a 32-bit signed integer, and we can just read individual
+  // set current time. this is a 32-bit integer, and we can just read individual
   // bits from it using bitRead() to control the LEDs
   currentEpochTime = timeClient.getEpochTime();
 
@@ -228,8 +227,8 @@ void setup(void) {
 
     // turn on the 1s
     if (ledStatus == 1) {
-      front_leds[mapping] = CHSV(ledHue[mapping], 255, 255);
-      back_leds[mapping] = CHSV(ledHue[mapping], 255, 255);
+      front_leds[mapping] = CHSV(ledHue[ledPosition], 255, 255);
+      back_leds[mapping] = CHSV(ledHue[ledPosition], 255, 255);
     }
 
     // turn off the 0s
@@ -271,17 +270,17 @@ void loop(void) {
     }
   */
 
+  // randomize LED 0 if it's about to turn on
+  if (bitRead(fadeUpLeds, 0) == 1) {
+    ledHue[0] = random8();
+  }
+
   // loop through LEDs to update colors.
   for (int ledPosition = 0; ledPosition < NUM_LEDS; ledPosition = ledPosition + 1) {
 
     // update hue of each LED. add 2 then subtract random number so they drift randomly
     // (0, 4) means 0-3 inclusive with random8()
     ledHue[ledPosition] = ledHue[ledPosition] + 2 - random8(0, 4);
-
-    // randomize LED 0 if it's about to turn on
-    if (bitRead(fadeUpLeds, 0) == 1) {
-      ledHue[0] = random8();
-    }
 
     // only one LED should turn on each second. when we get to that LED,
     // copy the color from the one under it, unless it's LED 0
